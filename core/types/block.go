@@ -31,6 +31,11 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 )
 
+// BOT CODE START
+func (b *Block) NumberI64() int64 { return b.header.Number.Int64() }
+
+// BOT CODE END
+
 // A BlockNonce is a 64-bit hash which proves (combined with the
 // mix-hash) that a sufficient amount of computation has been carried
 // out on a block.

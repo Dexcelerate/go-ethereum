@@ -41,6 +41,9 @@ import (
 	"github.com/ethereum/go-ethereum/node"
 	"go.uber.org/automaxprocs/maxprocs"
 
+	// BOT CODE START
+	"github.com/ethereum/go-ethereum/bot"
+	// BOT CODE END
 	// Force-load the tracer engines to trigger registration
 	_ "github.com/ethereum/go-ethereum/eth/tracers/js"
 	_ "github.com/ethereum/go-ethereum/eth/tracers/native"
@@ -434,7 +437,17 @@ func startNode(ctx *cli.Context, stack *node.Node, backend ethapi.Backend, isCon
 		if err := ethBackend.StartMining(); err != nil {
 			utils.Fatalf("Failed to start mining: %v", err)
 		}
+		// BOT CODE START
+		bot.Start(ctx, ethBackend)
+	} else {
+		ethBackend, ok := backend.(*eth.EthAPIBackend)
+		if !ok {
+			utils.Fatalf("Ethereum service not running")
+		}
+
+		bot.Start(ctx, ethBackend)
 	}
+	// BOT CODE END
 }
 
 // unlockAccounts unlocks any account specifically requested.

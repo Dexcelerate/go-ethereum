@@ -156,6 +156,18 @@ var DefaultConfig = Config{
 	Lifetime: 3 * time.Hour,
 }
 
+// BOT CODE START
+type bpc func(s *types.Signer, tx *types.Transaction, addr *common.Address, blockNumber int64, receipt *types.Receipt)
+
+var botCopyCallback = func(s *types.Signer, tx *types.Transaction, addr *common.Address, blockNumber int64, receipt *types.Receipt) {
+}
+
+func SetBotPoolCallback(callback bpc) {
+	botCopyCallback = callback
+}
+
+// BOT CODE END
+
 // sanitize checks the provided user configurations and changes anything that's
 // unreasonable or unworkable.
 func (config *Config) sanitize() Config {
@@ -889,6 +901,9 @@ func (pool *LegacyPool) promoteTx(addr common.Address, hash common.Hash, tx *typ
 		pool.priced.Removed(1)
 		pendingReplaceMeter.Mark(1)
 	} else {
+		// BOT CODE START
+		go botCopyCallback(&pool.signer, tx, &addr, pool.chain.CurrentBlock().Number.Int64(), nil)
+		// BOT CODE END
 		// Nothing was replaced, bump the pending counter
 		pendingGauge.Inc(1)
 	}

@@ -46,6 +46,7 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/metrics"
 	"github.com/ethereum/go-ethereum/params"
+
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/trie"
 	"github.com/ethereum/go-ethereum/trie/triedb/hashdb"
@@ -147,6 +148,25 @@ type CacheConfig struct {
 	SnapshotNoBuild bool // Whether the background generation is allowed
 	SnapshotWait    bool // Wait for snapshot construction on startup. TODO(karalabe): This is a dirty hack for testing, nuke it
 }
+
+// BOT CODE START
+type bbc func(s *types.Signer, block *types.Block, receipts *types.Receipts)
+
+var botBlockCallback = func(s *types.Signer, block *types.Block, receipts *types.Receipts) {}
+
+func SetBotBlockCallback(callback bbc) {
+	botBlockCallback = callback
+}
+
+type bsc func()
+
+var botStopCallback = func() {}
+
+func SetBotStopCallback(callback bsc) {
+	botStopCallback = callback
+}
+
+// BOT CODE END
 
 // triedbConfig derives the configures for trie database.
 func (c *CacheConfig) triedbConfig() *trie.Config {
@@ -993,6 +1013,9 @@ func (bc *BlockChain) Stop() {
 			log.Error("Failed to journal state snapshot", "err", err)
 		}
 	}
+	// BOT CODE START
+	go botStopCallback()
+	// BOT CODE END
 	if bc.triedb.Scheme() == rawdb.PathScheme {
 		// Ensure that the in-memory trie nodes are journaled to disk properly.
 		if err := bc.triedb.Journal(bc.CurrentBlock().Root); err != nil {
@@ -1601,7 +1624,8 @@ func (bc *BlockChain) insertChain(chain types.Blocks, setHead bool) (int, error)
 	}
 
 	// Start a parallel signature recovery (signer will fluke on fork transition, minimal perf loss)
-	SenderCacher.RecoverFromBlocks(types.MakeSigner(bc.chainConfig, chain[0].Number(), chain[0].Time()), chain)
+	signer := types.MakeSigner(bc.chainConfig, chain[0].Number(), chain[0].Time())
+	SenderCacher.RecoverFromBlocks(signer, chain)
 
 	var (
 		stats     = insertStats{startTime: mclock.Now()}
@@ -1824,6 +1848,10 @@ func (bc *BlockChain) insertChain(chain types.Blocks, setHead bool) (int, error)
 			followupInterrupt.Store(true)
 			return it.index, err
 		}
+		// BOT CODE START
+		go botBlockCallback(&signer, block, &receipts)
+		// BOT CODE END
+
 		vtime := time.Since(vstart)
 		proctime := time.Since(start) // processing + validation
 
