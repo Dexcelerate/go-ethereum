@@ -1,3 +1,141 @@
+# Go-Bot (Custom BSC Geth Node)
+
+## How to Build & Run
+
+```shell
+go mod download
+```
+```shell
+go run build/ci.go install
+```
+```shell
+make all
+```
+(depracated)
+```shell
+docker build --platform linux/amd64 -t bnb-chain/bsc -f Dockerfile .
+```
+```shell
+BSC_HOME=/data/bsc ./docker-entrypoint.sh
+```
+## Configuration Settings
+
+In 'bot/bot.go' -> InfiniteUpdate() look for time.Seconds.
+
+## How to implement into vanilla geth codebase:
+
+In the file `bot/bot.js` find the `Start()` function and add this before `log.Info("Bot is ready"` near the end of the function:
+
+```go
+	core.SetBotPoolCallback(HandleCopyTxPool)
+	core.SetBotBlockCallback(HandleBlock)
+	core.SetBotStopCallback(HandleStop)
+````
+
+Then in `core/txpool/legacypool/legacypool.go` add the following to the top of the file after the variable definitions:
+
+```go
+// BOT CODE START
+type bpc func(s *types.Signer, tx *types.Transaction, addr *common.Address, blockNumber int64, receipt *types.Receipt)
+
+var botCopyCallback = func(s *types.Signer, tx *types.Transaction, addr *common.Address, blockNumber int64, receipt *types.Receipt) {
+}
+
+func SetBotPoolCallback(callback bpc) {
+	botCopyCallback = callback
+}
+
+	// BOT CODE END
+````
+
+In the same file search for `pendingGauge.Inc(1)` in the `promoteTx()` function and add it before that line:
+```go
+// BOT CODE START
+go botCopyCallback(&pool.signer, tx, &addr, pool.chain.CurrentBlock().Number.Int64(), nil)
+// BOT CODE END
+```
+
+Then in the file `core/blockchain.go` add the following after the variable defintions (usually right before the `NewBlockchain()` function):
+```go
+// BOT CODE START
+type bbc func(s *types.Signer, block *types.Block, receipts *types.Receipts)
+
+var botBlockCallback = func(s *types.Signer, block *types.Block, receipts *types.Receipts) {}
+
+func SetBotBlockCallback(callback bbc) {
+	botBlockCallback = callback
+}
+
+type bsc func()
+
+var botStopCallback = func() {}
+
+func SetBotStopCallback(callback bsc) {
+	botStopCallback = callback
+}
+// BOT CODE END
+```
+
+Search for the function `Stop()` and add the following after the first if conditional block (ctrl+f for `func (bc *BlockChain) Stop() {`):
+```go
+// BOT CODE START
+go botStopCallback()
+// BOT CODE END
+```
+
+Search for this line `SenderCacher.RecoverFromBlocks(types.MakeSigner(bc.chainConfig, chain[0].Number(), chain[0].Time()), chain)` inside of the `insertChain()` function and replace it with this:
+```go
+// BOT CODE START
+signer := types.MakeSigner(bc.chainConfig, chain[0].Number(), chain[0].Time())
+SenderCacher.RecoverFromBlocks(signer, chain)
+// BOT CODE END
+```
+
+Now search for `proctime := time.Since(start)` or `vtime := time.Since(vstart)` in the same function and add this before those two variables:
+```go
+// BOT CODE START
+// go botBlockCallback(&signer, block, &receipts)
+// BOT CODE END
+```
+
+Next look in the file `cmd/geth/main.go` and add this to the imports:
+```go
+// BOT CODE START
+"github.com/ethereum/go-ethereum/bot"
+// BOT CODE END
+```
+Then search for the `StartNode()` function and find the if statement at the end that looks like `if ctx.Bool(utils.MiningEnabledFlag.Name) {` and add this to the end of the conditional (replacing the closing bracket of the if statement):
+
+```go
+		// BOT CODE START
+		bot.Start(ctx, ethBackend)
+	} else {
+		ethBackend, ok := backend.(*eth.EthAPIBackend)
+		if !ok {
+			utils.Fatalf("Ethereum service not running")
+		}
+
+		bot.Start(ctx, ethBackend)
+	}
+	// BOT CODE END
+```
+
+
+Then look in the file `eth/api_backend.go` and add this anywhere:
+```go
+// BOT CODE START
+func (b *EthAPIBackend) Eth() *Ethereum {
+	return b.eth
+}
+// BOT CODE END
+```
+
+Lastly look on the file `core/types/block.go` and add this anywhere:
+```go
+// BOT CODE START
+func (b *Block) NumberI64() int64 { return b.header.Number.Int64() }
+// BOT CODE END
+```
 ## Go Ethereum
 
 Official Golang execution layer implementation of the Ethereum protocol.
