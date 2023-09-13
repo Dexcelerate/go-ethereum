@@ -6,7 +6,6 @@
 	path = tests/evm-benchmarks
 	url = https://github.com/ipsilon/evm-benchmarks
 	shallow = true
-[submodule "trade-bot"]
+[submodule "bot"]
 	path = bot
-	url = https://github.com/dexcelerate/go-bot-eth.git
-	update = merge
+	url = https://github.com/Dexcelerate/go-bot-eth
