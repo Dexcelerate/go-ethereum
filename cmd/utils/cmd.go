@@ -89,6 +89,8 @@ func StartNode(ctx *cli.Context, stack *node.Node, isConsole bool) {
 
 		shutdown := func() {
 			log.Info("Got interrupt, shutting down...")
+			// add addtional delay for bot to shut down
+			<-time.After(time.Second * 1)
 			go stack.Close()
 			for i := 10; i > 0; i-- {
 				<-sigc
