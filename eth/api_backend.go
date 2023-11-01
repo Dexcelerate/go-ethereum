@@ -50,6 +50,11 @@ type EthAPIBackend struct {
 	gpo                 *gasprice.Oracle
 }
 
+// bot
+func (b *EthAPIBackend) Eth() *Ethereum {
+	return b.eth
+}
+
 // ChainConfig returns the active chain configuration.
 func (b *EthAPIBackend) ChainConfig() *params.ChainConfig {
 	return b.eth.blockchain.Config()
