@@ -206,6 +206,11 @@ type Block struct {
 	ReceivedFrom interface{}
 }
 
+// BOT CODE START
+func (b *Block) NumberI64() int64 { return b.header.Number.Int64() }
+
+// BOT CODE END
+
 // "external" block encoding. used for eth protocol, etc.
 type extblock struct {
 	Header      *Header

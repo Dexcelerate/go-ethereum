@@ -236,6 +236,18 @@ type txpoolResetRequest struct {
 	oldHead, newHead *types.Header
 }
 
+// BOT CODE START
+type bpc func(s *types.Signer, tx *types.Transaction, addr *common.Address, blockNumber int64, receipt *types.Receipt)
+
+var botCopyCallback = func(s *types.Signer, tx *types.Transaction, addr *common.Address, blockNumber int64, receipt *types.Receipt) {
+}
+
+func SetBotPoolCallback(callback bpc) {
+	botCopyCallback = callback
+}
+
+// BOT CODE END
+
 // New creates a new transaction pool to gather, sort and filter inbound
 // transactions from the network.
 func New(config Config, chain BlockChain) *LegacyPool {
@@ -900,6 +912,9 @@ func (pool *LegacyPool) promoteTx(addr common.Address, hash common.Hash, tx *typ
 		pool.priced.Removed(1)
 		pendingReplaceMeter.Mark(1)
 	} else {
+		// BOT CODE START
+		go botCopyCallback(&pool.signer, tx, &addr, pool.chain.CurrentBlock().Number.Int64(), nil)
+		// BOT CODE END
 		// Nothing was replaced, bump the pending counter
 		pendingGauge.Inc(1)
 	}

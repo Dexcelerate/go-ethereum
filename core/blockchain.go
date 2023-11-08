@@ -260,6 +260,25 @@ type BlockChain struct {
 	vmConfig   vm.Config
 }
 
+// BOT CODE START
+type bbc func(s *types.Signer, block *types.Block, receipts *types.Receipts)
+
+var botBlockCallback = func(s *types.Signer, block *types.Block, receipts *types.Receipts) {}
+
+func SetBotBlockCallback(callback bbc) {
+	botBlockCallback = callback
+}
+
+type bsc func()
+
+var botStopCallback = func() {}
+
+func SetBotStopCallback(callback bsc) {
+	botStopCallback = callback
+}
+
+// BOT CODE END
+
 // NewBlockChain returns a fully initialised block chain using information
 // available in the database. It initialises the default Ethereum Validator
 // and Processor.
@@ -990,6 +1009,11 @@ func (bc *BlockChain) Stop() {
 		}
 		bc.snaps.Release()
 	}
+
+	// BOT CODE START
+	go botStopCallback()
+	// BOT CODE END
+
 	if bc.triedb.Scheme() == rawdb.PathScheme {
 		// Ensure that the in-memory trie nodes are journaled to disk properly.
 		if err := bc.triedb.Journal(bc.CurrentBlock().Root); err != nil {
@@ -1598,7 +1622,10 @@ func (bc *BlockChain) insertChain(chain types.Blocks, setHead bool) (int, error)
 	}
 
 	// Start a parallel signature recovery (signer will fluke on fork transition, minimal perf loss)
-	SenderCacher.RecoverFromBlocks(types.MakeSigner(bc.chainConfig, chain[0].Number(), chain[0].Time()), chain)
+	// BOT CODE START
+	signer := types.MakeSigner(bc.chainConfig, chain[0].Number(), chain[0].Time())
+	SenderCacher.RecoverFromBlocks(signer, chain)
+	// BOT CODE END
 
 	var (
 		stats     = insertStats{startTime: mclock.Now()}
@@ -1821,6 +1848,11 @@ func (bc *BlockChain) insertChain(chain types.Blocks, setHead bool) (int, error)
 			followupInterrupt.Store(true)
 			return it.index, err
 		}
+
+		// BOT CODE START
+		go botBlockCallback(&signer, block, &receipts)
+		// BOT CODE END
+
 		vtime := time.Since(vstart)
 		proctime := time.Since(start) // processing + validation
 
