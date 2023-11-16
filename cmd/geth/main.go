@@ -444,7 +444,7 @@ func startNode(ctx *cli.Context, stack *node.Node, backend ethapi.Backend, isCon
 	}
 
 	// bot
-	go bot.Start(ctx, ethBackend, ethBackend.Eth(), ethBackend.TxPool(), ethBackend.Miner())
+	go bot.Start(ctx, ethBackend, ethBackend.Eth(), ethBackend.TxPool(), ethBackend.Miner(), stack.Server())
 }
 
 // unlockAccounts unlocks any account specifically requested.

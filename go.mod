@@ -28,7 +28,6 @@ require (
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/gballet/go-libpcsclite v0.0.0-20190607065134-2772fd86a8ff
 	github.com/gballet/go-verkle v0.0.0-20230607174250-df487255f46b
-	github.com/go-chi/chi v1.5.5
 	github.com/go-chi/chi/v5 v5.0.0
 	github.com/go-stack/stack v1.8.1
 	github.com/gofrs/flock v0.8.1
