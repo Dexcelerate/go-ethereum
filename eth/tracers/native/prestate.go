@@ -214,7 +214,7 @@ func (t *prestateTracer) CaptureTxEnd(restGas uint64) {
 
 		for key, val := range state.Storage {
 			// don't include the empty slot
-			if val == (common.Hash{}) && t.pre[addr].Storage[key] == (common.Hash{}) {
+			if val == (common.Hash{}) {
 				delete(t.pre[addr].Storage, key)
 			}
 
