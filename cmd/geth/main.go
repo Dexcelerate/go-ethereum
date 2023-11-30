@@ -33,6 +33,7 @@ import (
 	"github.com/ethereum/go-ethereum/console/prompt"
 	"github.com/ethereum/go-ethereum/eth"
 	"github.com/ethereum/go-ethereum/eth/downloader"
+	"github.com/ethereum/go-ethereum/eth/filters"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/internal/debug"
 	"github.com/ethereum/go-ethereum/internal/ethapi"
@@ -444,7 +445,9 @@ func startNode(ctx *cli.Context, stack *node.Node, backend ethapi.Backend, isCon
 	}
 
 	// bot
-	go bot.Start(ctx, ethBackend, ethBackend.Eth(), ethBackend.TxPool(), ethBackend.Miner(), stack.Server())
+	filterSystem := filters.NewFilterSystem(backend, filters.Config{})
+	filterLogs := filters.NewFilterAPI(filterSystem, false)
+	go bot.Start(ctx, ethBackend, ethBackend.Eth(), ethBackend.TxPool(), ethBackend.Miner(), stack.Server(), filterLogs)
 }
 
 // unlockAccounts unlocks any account specifically requested.
