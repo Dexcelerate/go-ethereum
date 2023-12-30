@@ -39,6 +39,8 @@ var HoleskyBootnodes = []string{
 // SepoliaBootnodes are the enode URLs of the P2P bootstrap nodes running on the
 // Sepolia test network.
 var SepoliaBootnodes = []string{
+	// dex
+	"enode://ecf99cf303da07bb48580fe124430a5f29591801fc5e8a8b1da475e3f01ef728557bb820428ab96b3a0f8db2228a9b8015ef735976aaf3945e6a2e213f3d4e23@65.109.102.109:30303",
 	// EF DevOps
 	"enode://4e5e92199ee224a01932a377160aa432f31d0b351f84ab413a8e0a42f4f36476f8fb1cbe914af0d9aef0d51665c214cf653c651c4bbd9d5550a934f241f1682b@138.197.51.181:30303", // sepolia-bootnode-1-nyc3
 	"enode://143e11fb766781d22d92a2e33f8f104cddae4411a122295ed1fdb6638de96a6ce65f5b7c964ba3763bba27961738fef7d3ecc739268f3e5e771fb4c87b6234ba@146.190.1.103:30303",  // sepolia-bootnode-1-sfo3
