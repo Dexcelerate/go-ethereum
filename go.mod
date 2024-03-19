@@ -38,7 +38,6 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.4.2
 	github.com/graph-gophers/graphql-go v1.3.0
-	github.com/grongor/panicwatch v1.2.0
 	github.com/hashicorp/go-bexpr v0.1.10
 	github.com/holiman/billy v0.0.0-20240216141850-2abb0c79d3c4
 	github.com/holiman/bloomfilter/v2 v2.0.3
@@ -129,7 +128,6 @@ require (
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/felixge/httpsnoop v1.0.3 // indirect
 	github.com/garslo/gogen v0.0.0-20170306192744-1d203ffc1f61 // indirect
-	github.com/glycerine/rbuf v0.0.0-20190314090850-75b78581bebe // indirect
 	github.com/go-errors/errors v1.5.1 // indirect
 	github.com/go-logr/logr v1.2.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
