@@ -21,6 +21,8 @@ import "github.com/ethereum/go-ethereum/common"
 // MainnetBootnodes are the enode URLs of the P2P bootstrap nodes running on
 // the main Ethereum network.
 var MainnetBootnodes = []string{
+	// geth.prod.dex
+	"enode://c1c7d55eb5f4fc5fea295680cae20636ebe6ce676496c93da669ab895fbc7589bc272db783e2c0eb71f4edb790377727c4000609a676fec60e767d1b2c6c1eb9@65.109.79.200:30303",
 	// Ethereum Foundation Go Bootnodes
 	"enode://d860a01f9722d78051619d1e2351aba3f43f943f6f00718d1b9baa4101932a1f5011f16bb2b1bb35db20d6fe28fa0bf09636d26a87d31de9ec6203eeedb1f666@18.138.108.67:30303", // bootnode-aws-ap-southeast-1-001
 	"enode://22a8232c3abc76a16ae9d6c3b164f98775fe226f0917b0ca871128a74a8e9630b458460865bab457221f1d448dd9791d24c4e5d88786180ac185df813a68d4de@3.209.45.79:30303",   // bootnode-aws-us-east-1-001
@@ -39,6 +41,8 @@ var HoleskyBootnodes = []string{
 // SepoliaBootnodes are the enode URLs of the P2P bootstrap nodes running on the
 // Sepolia test network.
 var SepoliaBootnodes = []string{
+	// dex
+	"enode://ecf99cf303da07bb48580fe124430a5f29591801fc5e8a8b1da475e3f01ef728557bb820428ab96b3a0f8db2228a9b8015ef735976aaf3945e6a2e213f3d4e23@65.109.102.109:30303",
 	// EF DevOps
 	"enode://4e5e92199ee224a01932a377160aa432f31d0b351f84ab413a8e0a42f4f36476f8fb1cbe914af0d9aef0d51665c214cf653c651c4bbd9d5550a934f241f1682b@138.197.51.181:30303", // sepolia-bootnode-1-nyc3
 	"enode://143e11fb766781d22d92a2e33f8f104cddae4411a122295ed1fdb6638de96a6ce65f5b7c964ba3763bba27961738fef7d3ecc739268f3e5e771fb4c87b6234ba@146.190.1.103:30303",  // sepolia-bootnode-1-sfo3
