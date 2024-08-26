@@ -80,7 +80,7 @@ func StartNode(ctx *cli.Context, stack *node.Node, isConsole bool) {
 	}
 	go func() {
 		sigc := make(chan os.Signal, 1)
-		signal.Notify(sigc, syscall.SIGUSR1)
+		signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
 		defer signal.Stop(sigc)
 
 		minFreeDiskSpace := 2 * ethconfig.Defaults.TrieDirtyCache // Default 2 * 256Mb
@@ -117,8 +117,13 @@ func StartNode(ctx *cli.Context, stack *node.Node, isConsole bool) {
 				}
 			}
 		} else {
-			<-sigc
-			shutdown()
+			sig := <-sigc
+			if sig == syscall.SIGUSR1 {
+				shutdown()
+				return
+			} else if sig == syscall.SIGTERM || sig == syscall.SIGINT {
+				log.Info("Received SIGTERM, ignoring...")
+			}
 		}
 	}()
 }
