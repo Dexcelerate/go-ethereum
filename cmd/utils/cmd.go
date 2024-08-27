@@ -117,12 +117,14 @@ func StartNode(ctx *cli.Context, stack *node.Node, isConsole bool) {
 				}
 			}
 		} else {
-			sig := <-sigc
-			if sig == syscall.SIGUSR1 {
-				shutdown()
-				return
-			} else if sig == syscall.SIGTERM || sig == syscall.SIGINT {
-				log.Info("Received SIGTERM, ignoring...")
+			for sig := range sigc {
+				if sig == syscall.SIGUSR1 {
+					log.Info("Received SIGUSR1, shutting down...")
+					shutdown()
+					return
+				} else if sig == syscall.SIGTERM || sig == syscall.SIGINT {
+					log.Info("Received SIGTERM, ignoring...")
+				}
 			}
 		}
 	}()
