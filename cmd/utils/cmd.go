@@ -96,35 +96,23 @@ func StartNode(ctx *cli.Context, stack *node.Node, isConsole bool) {
 		shutdown := func() {
 			log.Info("Got interrupt, shutting down...")
 			go stack.Close()
-			for i := 10; i > 0; i-- {
-				<-sigc
-				if i > 1 {
-					log.Warn("Already shutting down, interrupt more to panic.", "times", i-1)
-				}
-			}
+			// for i := 10; i > 0; i-- {
+			// 	<-sigc
+			// 	if i > 1 {
+			// 		log.Warn("Already shutting down, interrupt more to panic.", "times", i-1)
+			// 	}
+			// }
 			debug.Exit() // ensure trace and CPU profile data is flushed.
 			debug.LoudPanic("boom")
 		}
 
-		if isConsole {
-			// In JS console mode, SIGINT is ignored because it's handled by the console.
-			// However, SIGTERM still shuts down the node.
-			for {
-				sig := <-sigc
-				if sig == syscall.SIGTERM {
-					shutdown()
-					return
-				}
-			}
-		} else {
-			for sig := range sigc {
-				if sig == syscall.SIGUSR1 {
-					log.Info("Received SIGUSR1, shutting down...")
-					shutdown()
-					return
-				} else if sig == syscall.SIGTERM || sig == syscall.SIGINT {
-					log.Info("Received SIGTERM, ignoring...")
-				}
+		for sig := range sigc {
+			if sig == syscall.SIGUSR1 {
+				log.Info("Received SIGUSR1, shutting down...")
+				shutdown()
+				return
+			} else if sig == syscall.SIGTERM || sig == syscall.SIGINT {
+				log.Info("Received SIGTERM, ignoring...")
 			}
 		}
 	}()
