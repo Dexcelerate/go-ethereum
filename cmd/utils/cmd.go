@@ -21,6 +21,7 @@ import (
 	"bufio"
 	"bytes"
 	"compress/gzip"
+	"context"
 	"crypto/sha256"
 	"errors"
 	"fmt"
@@ -74,13 +75,13 @@ func Fatalf(format string, args ...interface{}) {
 	os.Exit(1)
 }
 
-func StartNode(ctx *cli.Context, stack *node.Node, isConsole bool) {
+func StartNode(ctx *cli.Context, stack *node.Node, startKillingBot, botKilled chan struct{}) {
 	if err := stack.Start(); err != nil {
 		Fatalf("Error starting protocol stack: %v", err)
 	}
 	go func() {
 		sigc := make(chan os.Signal, 1)
-		signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
+		signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM)
 		defer signal.Stop(sigc)
 
 		minFreeDiskSpace := 2 * ethconfig.Defaults.TrieDirtyCache // Default 2 * 256Mb
@@ -96,25 +97,29 @@ func StartNode(ctx *cli.Context, stack *node.Node, isConsole bool) {
 		shutdown := func() {
 			log.Info("Got interrupt, shutting down...")
 			go stack.Close()
-			// for i := 10; i > 0; i-- {
-			// 	<-sigc
-			// 	if i > 1 {
-			// 		log.Warn("Already shutting down, interrupt more to panic.", "times", i-1)
-			// 	}
-			// }
+			for i := 10; i > 0; i-- {
+				<-sigc
+				if i > 1 {
+					log.Warn("Got interrupt again, shutting down...")
+				}
+			}
 			debug.Exit() // ensure trace and CPU profile data is flushed.
 			debug.LoudPanic("boom")
 		}
 
-		for sig := range sigc {
-			if sig == syscall.SIGUSR1 {
-				log.Info("Received SIGUSR1, shutting down...")
-				shutdown()
-				return
-			} else if sig == syscall.SIGTERM || sig == syscall.SIGINT {
-				log.Info("Received SIGTERM, ignoring...")
-			}
+		log.Info("Received SIGTERM, killing bot...")
+		startKillingBot <- struct{}{}
+
+		ctxTimeout, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+		defer cancel()
+		select {
+		case <-botKilled:
+			log.Info("Bot killed signal received.")
+		case <-ctxTimeout.Done():
+			log.Warn("Timeout reached while waiting for bot to be killed.")
 		}
+		shutdown()
+
 	}()
 }
 
