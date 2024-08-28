@@ -107,6 +107,7 @@ func StartNode(ctx *cli.Context, stack *node.Node, startKillingBot, botKilled ch
 			debug.LoudPanic("boom")
 		}
 
+		<-sigc
 		log.Info("Received SIGTERM, killing bot...")
 		startKillingBot <- struct{}{}
 
