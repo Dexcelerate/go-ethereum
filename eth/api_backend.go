@@ -38,6 +38,7 @@ import (
 	"github.com/ethereum/go-ethereum/eth/tracers"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/event"
+	"github.com/ethereum/go-ethereum/miner"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rpc"
 )
@@ -48,6 +49,13 @@ type EthAPIBackend struct {
 	allowUnprotectedTxs bool
 	eth                 *Ethereum
 	gpo                 *gasprice.Oracle
+}
+
+func (b *EthAPIBackend) Eth() *Ethereum {
+	return b.eth
+}
+func (b *EthAPIBackend) Miner() *miner.Miner {
+	return b.eth.Miner()
 }
 
 // ChainConfig returns the active chain configuration.

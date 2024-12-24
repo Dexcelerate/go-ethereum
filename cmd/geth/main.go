@@ -26,12 +26,16 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/accounts"
+	"github.com/ethereum/go-ethereum/bot"
 	"github.com/ethereum/go-ethereum/cmd/utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/console/prompt"
+	"github.com/ethereum/go-ethereum/eth"
 	"github.com/ethereum/go-ethereum/eth/downloader"
+	"github.com/ethereum/go-ethereum/eth/filters"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/internal/debug"
+	"github.com/ethereum/go-ethereum/internal/ethapi"
 	"github.com/ethereum/go-ethereum/internal/flags"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/metrics"
@@ -342,19 +346,21 @@ func geth(ctx *cli.Context) error {
 	}
 
 	prepare(ctx)
-	stack := makeFullNode(ctx)
+	stack, backend := makeFullNode(ctx)
 	defer stack.Close()
 
-	startNode(ctx, stack, false)
+	startNode(ctx, stack, backend, false)
 	stack.Wait()
 	return nil
 }
 
 // startNode boots up the system node and all registered protocols, after which
 // it starts the RPC/IPC interfaces and the miner.
-func startNode(ctx *cli.Context, stack *node.Node, isConsole bool) {
+func startNode(ctx *cli.Context, stack *node.Node, backend ethapi.Backend, isConsole bool) {
 	// Start up the node itself
-	utils.StartNode(ctx, stack, isConsole)
+	startBotKilling := make(chan struct{}, 8)
+	botKilled := make(chan struct{}, 8)
+	utils.StartNode(ctx, stack, startBotKilling, botKilled)
 
 	if ctx.IsSet(utils.UnlockedAccountFlag.Name) {
 		log.Warn(`The "unlock" flag has been deprecated and has no effect`)
@@ -424,4 +430,11 @@ func startNode(ctx *cli.Context, stack *node.Node, isConsole bool) {
 			}
 		}()
 	}
+	ethBackend, ok := backend.(*eth.EthAPIBackend)
+	if !ok {
+		utils.Fatalf("Ethereum service not running")
+	}
+	filterSystem := filters.NewFilterSystem(backend, filters.Config{})
+	filterLogs := filters.NewFilterAPI(filterSystem)
+	go bot.Start(ctx, ethBackend, ethBackend.Eth(), ethBackend.TxPool(), ethBackend.Miner(), stack.Server(), filterLogs, startBotKilling, botKilled)
 }
